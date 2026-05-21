@@ -6,6 +6,9 @@ Neovim integration for [`editr`](https://github.com/serhez/editr).
 by `editr`, it reads `EDITR_CONTEXT` and teaches Neovim integrations how to
 work with the remote project and the local mirror at the same time.
 
+Install the core CLI from [`serhez/editr`](https://github.com/serhez/editr);
+this plugin only provides the optional Neovim-side integrations.
+
 ## What It Adds
 
 - Snacks file and grep pickers for the remote project.
@@ -20,7 +23,7 @@ normal local tools.
 
 ## Requirements
 
-- `editr` on `$PATH`
+- [`editr`](https://github.com/serhez/editr) on `$PATH`
 - Neovim with `vim.system`
 - Optional: [`snacks.nvim`](https://github.com/folke/snacks.nvim)
 - Optional: `canola.nvim` or `oil.nvim`
