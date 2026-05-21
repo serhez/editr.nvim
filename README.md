@@ -62,6 +62,9 @@ editr host:/absolute/remote/project
 
 The plugin does nothing when `EDITR_CONTEXT` is absent.
 
+See [Recipes](docs/recipes.md) for complete mapping, picker, canola/oil, and
+hydration examples.
+
 ## Commands
 
 - `:EditrInfo` shows the active context.
