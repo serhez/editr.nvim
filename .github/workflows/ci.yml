@@ -19,3 +19,8 @@ jobs:
           nvim --headless --cmd 'set shadafile=NONE' \
             -c "lua vim.opt.rtp:prepend(vim.fn.getcwd()); require('editr'); require('editr.router')" \
             -c qa
+      - name: Helptags check
+        run: |
+          nvim --headless --cmd 'set shadafile=NONE' \
+            -c "helptags doc" \
+            -c qa

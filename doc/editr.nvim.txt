@@ -1,0 +1,170 @@
+*editr.nvim.txt*        Neovim integration for editr
+
+==============================================================================
+CONTENTS                                             *editr.nvim*
+
+  1. Overview                         |editr.nvim-overview|
+  2. Setup                            |editr.nvim-setup|
+  3. Commands                         |editr.nvim-commands|
+  4. Router Helpers                   |editr.nvim-router|
+  5. canola/oil                       |editr.nvim-explorer|
+  6. Hydration                        |editr.nvim-hydration|
+
+==============================================================================
+OVERVIEW                                      *editr.nvim-overview*
+
+editr.nvim is the optional Neovim companion for editr:
+
+  https://github.com/serhez/editr
+
+It is inactive during normal local editing. When Neovim is launched by editr,
+the plugin reads $EDITR_CONTEXT and routes selected Neovim integrations so they
+operate on the remote project while opening editable files from the local
+mirror.
+
+The main features are:
+
+- remote-aware Snacks file and grep pickers
+- canola/oil entry points for lazy remote browsing
+- canola selection routing back into the local mirror
+- on-demand hydration for ignored remote-only files
+- router helpers for existing mappings
+
+==============================================================================
+SETUP                                             *editr.nvim-setup*
+
+Lazy.nvim example:
+>
+  {
+    "serhez/editr.nvim",
+    opts = {
+      editr_bin = "editr",
+      integrations = {
+        snacks = true,
+        canola = true,
+        oil = true,
+      },
+      remote_open_policy = "auto_under_limit",
+      max_auto_hydrate_size = "25 MB",
+      hydration_mode = "live",
+      flush_on_write = true,
+    },
+  }
+<
+
+Options:
+
+                                                        *editr.nvim-options*
+  editr_bin              editr executable path.
+  integrations.snacks    Enable Snacks picker integration.
+  integrations.canola    Enable canola explorer integration.
+  integrations.oil       Enable oil explorer integration.
+  remote_open_policy     One of "auto_under_limit", "hydrate", "remote",
+                         or "prompt".
+  max_auto_hydrate_size  Maximum size for automatic hydration.
+  hydration_mode         "live" or "oneshot".
+  flush_on_write         Flush live hydration sessions after writes.
+  ssh_args               Extra ssh arguments for remote picker commands.
+
+==============================================================================
+COMMANDS                                       *editr.nvim-commands*
+
+                                                        *:EditrInfo*
+:EditrInfo
+        Show the active editr context.
+
+                                                        *:EditrRemoteFiles*
+:EditrRemoteFiles
+        Open the remote-aware Snacks file picker.
+
+                                                        *:EditrRemoteGrep*
+:EditrRemoteGrep
+        Open the remote-aware Snacks grep picker.
+
+                                                        *:EditrCanola*
+:EditrCanola
+        Open the editr remote root with canola.
+
+                                                        *:EditrOil*
+:EditrOil
+        Open the editr remote root with oil.
+
+                                                        *:EditrHydrate*
+:EditrHydrate [remote-path]
+        Hydrate a remote file into the local mirror and open it.
+
+==============================================================================
+ROUTER HELPERS                                  *editr.nvim-router*
+
+Use editr.router to keep one mapping for local and remote sessions:
+>
+  local router = require("editr.router")
+
+  vim.keymap.set("n", "<leader>f", router.map({
+    router.editr("files"),
+  }, function()
+    require("snacks").picker.files()
+  end), { desc = "Find files" })
+<
+
+Inside an editr session this calls editr.files(). Outside an editr session the
+fallback runs normally.
+
+Helpers:
+
+  router.editr(method, ...)     Call require("editr")[method](...).
+  router.map(handlers, fb)      Try handlers, then fallback.
+  router.first(handlers, ...)   Try handlers until one returns true.
+  router.module(name, method)   Build a handler for another module.
+
+==============================================================================
+CANOLA/OIL                                    *editr.nvim-explorer*
+
+Use router.editr("explorer") to open canola on the editr remote root:
+>
+  local router = require("editr.router")
+
+  vim.keymap.set("n", "<leader>e", router.map({
+    router.editr("explorer"),
+  }, function()
+    require("oil").open()
+  end), { desc = "Explorer" })
+<
+
+When browsing with canola, route selection through editr:
+>
+  ["<CR>"] = {
+    desc = "Select",
+    callback = function()
+      if not require("editr").canola_select({ close = true }) then
+        require("canola").select({ close = true })
+      end
+    end,
+  }
+<
+
+Synced files open from the local mirror. Ignored remote-only files go through
+the hydration policy.
+
+==============================================================================
+HYDRATION                                    *editr.nvim-hydration*
+
+Hydration means syncing one remote file into the local mirror. It is useful for
+ignored paths such as logs or generated artifacts.
+
+Policies:
+
+  auto_under_limit   Open local files directly. Hydrate remote-only files under
+                     max_auto_hydrate_size. Prompt for large or unknown files.
+  hydrate            Hydrate selected remote-only files.
+  remote             Open remote buffers without hydrating.
+  prompt             Always ask.
+
+Live hydration creates a per-file Mutagen session. editr.nvim stops that
+session on buffer close and on VimLeavePre. For hard crashes, use:
+>
+  editr watch
+<
+
+==============================================================================
+vim:tw=78:ts=8:noet:ft=help:norl:

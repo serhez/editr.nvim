@@ -1,3 +1,4 @@
 .DS_Store
 .luarc.json
 nvim.log
+doc/tags
